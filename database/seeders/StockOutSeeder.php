@@ -16,7 +16,7 @@ class StockOutSeeder extends Seeder
      */
     public function run()
     {
-        for ($i = 365; $i >= 0; $i--) {
+        for ($i = 1825; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i)->format('Y-m-d H:i:s');
             
             $items = [
