@@ -19,7 +19,24 @@ class StockOutSeeder extends Seeder
         for ($i = 365; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i)->format('Y-m-d H:i:s');
             
-            $items = ['Item 1', 'Item 2', 'Item 3', 'Item 4', 'Item 5', 'Item 6', 'Item 7'];
+            $items = [
+                'Apple iPhone 13',
+                'Apple iPhone 13 Pro',
+                'Samsung Galaxy S21',
+                'Samsung Galaxy S21 Ultra',
+                'Samsung Galaxy Z Fold3',
+                'Samsung Galaxy Z Flip3',
+                'Xiaomi Mix 4',
+                'Xiaomi Mi 11',
+                'Xiaomi Mi 11 Ultra',
+                'Xiaomi Mi 11 Pro',
+                'Xiaomi Mi Mix Fold',
+                'Xiaomi 11T Pro',
+                'Google Pixel 6 Pro',
+                'Google Pixel 6',
+                'Vivo X70 Pro',
+                'Huawei Mate X2'
+            ];
 
             foreach ($items as $item) {
                 DB::table('stock_outs')->insert([
