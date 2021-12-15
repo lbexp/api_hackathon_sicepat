@@ -72,26 +72,79 @@ class DashboardController extends Controller
             // $data = array_merge($data, $dataFile);
         }
 
-        dd($data->toArray());
-        
-        // Change $data date
-        // $keyState = 0;
-        // $processedData = collect(array());
-        
-        // foreach ($data as $item) {
-        //     $processedData->push([
-        //         'item_id' => $item[0],
-        //         'date' => $item[1],
-        //         'p10' => $item[2],
-        //         'p50' => $item[3],
-        //         'p90' => $item[4],
-        //         'mean' => $item[5]
-        //     ]);
-        //     $keyState++;
-        // }
+        $tomorrowData = $data->where('date', Carbon::tomorrow()->format('Y-m-d'))->toArray();
+        $currentStock = collect([
+            'item_1' => 5,        
+            'item_2' => 6,        
+            'item_3' => 4,        
+            'item_4' => 8,        
+            'item_5' => 9,        
+            'item_6' => 10,        
+            'item_7' => 13,        
+            'item_8' => 1,        
+            'item_9' => 5,        
+            'item_10' => 7,        
+            'item_11' => 7,        
+            'item_12' => 8,        
+            'item_13' => 3,        
+            'item_14' => 11,        
+            'item_15' => 4,        
+            'item_16' => 1
+        ]);
 
-        // dd($processedData->toArray());
+        // Widget data, ini yang dipakai untuk tampilan ($line, $pie, $table)
+        $line = array();
+        $pie = [
+            [
+                'category' => 'understock',
+                'jumlah' => 0,
+            ],
+            [
+                'category' => 'overstock',
+                'jumlah' => 0,
+            ],
+            [
+                'category' => 'normal',
+                'jumlah' => 0,
+            ]
+        ];
+        $table = collect();
 
-        return view('dashboard.index', compact('data', 'labels'));
+        foreach ($tomorrowData as $item) {
+            $predictedStock = (int)$item['mean'];
+            $status = 'normal';
+
+            if ($currentStock[$item['item_id']] < $predictedStock - 2) {
+                $status = 'understock';
+                $pie[0]['jumlah']++;
+            } elseif ($currentStock[$item['item_id']] > $predictedStock + 2) {
+                $status = 'overstock';
+                $pie[1]['jumlah']++;
+            } else {
+                $status = 'normal';
+                $pie[2]['jumlah']++;
+            }
+
+            $table->push([
+                'item_id' => $item['item_id'],
+                'date' => $item['date'],
+                'current_stock' => $currentStock[$item['item_id']],
+                'predicted_stock' => $predictedStock,
+                'status' => $status
+            ]);
+        }
+
+        foreach ($forecastDates as $key => $date) {
+            $dataPerDate = $data->where('date', $date)->toArray();
+
+            foreach ($dataPerDate as $item) {
+                $line[$key]['date'] = $date;
+                $line[$key][$item['item_id']] = (int)$item['mean'];
+            }
+        }
+
+        $table->toArray();
+
+        return view('dashboard.index', compact('line', 'pie', 'table'));
     }
 }
