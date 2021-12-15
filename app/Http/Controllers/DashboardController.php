@@ -95,18 +95,9 @@ class DashboardController extends Controller
         // Widget data, ini yang dipakai untuk tampilan ($line, $pie, $table)
         $line = array();
         $pie = [
-            [
-                'category' => 'understock',
-                'jumlah' => 0,
-            ],
-            [
-                'category' => 'overstock',
-                'jumlah' => 0,
-            ],
-            [
-                'category' => 'normal',
-                'jumlah' => 0,
-            ]
+            'understock' => 0,
+            'overstock' => 0,
+            'normal' => 0
         ];
         $table = collect();
 
@@ -116,13 +107,13 @@ class DashboardController extends Controller
 
             if ($currentStock[$item['item_id']] < $predictedStock - 2) {
                 $status = 'understock';
-                $pie[0]['jumlah']++;
+                $pie['understock']++;
             } elseif ($currentStock[$item['item_id']] > $predictedStock + 2) {
                 $status = 'overstock';
-                $pie[1]['jumlah']++;
+                $pie['overstock']++;
             } else {
                 $status = 'normal';
-                $pie[2]['jumlah']++;
+                $pie['normal']++;
             }
 
             $table->push([
@@ -138,8 +129,8 @@ class DashboardController extends Controller
             $dataPerDate = $data->where('date', $date)->toArray();
 
             foreach ($dataPerDate as $item) {
-                $line[$key]['date'] = $date;
-                $line[$key][$item['item_id']] = (int)$item['mean'];
+                $line['date'][$date] = $date;
+                $line[$item['item_id']][] = (int)$item['mean'];
             }
         }
 
