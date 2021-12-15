@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
 {
@@ -18,9 +19,21 @@ class DashboardController extends Controller
 
     public function index()
     {
+        $tomorrow = Carbon::tomorrow()->format('Y-m-d');
+
+        // forecast dates 10 days after
+        $forecastDates = collect(array());
+        for ($i = 1; $i <= 10; $i++) {
+            $forecastDates->push(Carbon::now()->addDays($i)->format('Y-m-d'));
+        }
+
+        // dd($forecastDates[9]);
+
         $labels = ['item_id', 'date', 'p10', 'p50', 'p90', 'mean'];
-        // $data = array();
+
         $data = collect(array());
+
+        $forecastDataTable = collect(array());
 
         $csvFileNames = [
             'stockout_forecast_export_2021-12-14T13-20-10Z_part0.csv',
@@ -29,37 +42,56 @@ class DashboardController extends Controller
             'stockout_forecast_export_2021-12-14T13-20-10Z_part3.csv'
         ];
 
+        // Put all the data from csv into $data
         foreach ($csvFileNames as $csvFileName) {
             $csvFile = 'https://stockoutforecastbucket.s3.ap-southeast-1.amazonaws.com/' . $csvFileName;
         
             $dataFile = $this->readCSV($csvFile, array('delimiter' => ','));
     
             unset($dataFile[0]);
+
+            // dd($dataFile);
             
+            $keyState = 0;
+
             foreach ($dataFile as $item) {
+                // $date = date('Y-m-d', strtotime($item[1]));
                 $data->push([
                     'item_id' => $item[0],
-                    'date' => $item[1],
+                    'date' => $forecastDates[$keyState],
                     'p10' => $item[2],
                     'p50' => $item[3],
                     'p90' => $item[4],
                     'mean' => $item[5]
                 ]);
+                $keyState++;
+
+                if ($keyState == 10) $keyState = 0;
+                // dd(Carbon::tomorrow()->format('Y-m-d'));
             }
-            
             // $data = array_merge($data, $dataFile);
         }
 
-        // $artikel = Artikel::where('status', 'publikasi')->where('published_at', '<=', Carbon::now())->orderBy('published_at', 'desc');
-
-        // if(Session::get('lg') == 'en' ) {
-        //     $artikel = $artikel->where('judul_english', '!=', null)->paginate(9);
-        //     return view('content_english.articles', compact('artikel'));
+        dd($data->toArray());
+        
+        // Change $data date
+        // $keyState = 0;
+        // $processedData = collect(array());
+        
+        // foreach ($data as $item) {
+        //     $processedData->push([
+        //         'item_id' => $item[0],
+        //         'date' => $item[1],
+        //         'p10' => $item[2],
+        //         'p50' => $item[3],
+        //         'p90' => $item[4],
+        //         'mean' => $item[5]
+        //     ]);
+        //     $keyState++;
         // }
 
-        // $artikel = $artikel->paginate(9);
+        // dd($processedData->toArray());
 
-        // return view('dashboard.index', compact('artikel'));
-        return view('dashboard.index', compact('data'));
+        return view('dashboard.index', compact('data', 'labels'));
     }
 }
